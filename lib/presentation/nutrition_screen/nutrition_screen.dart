@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/app_theme.dart';
+import '../../services/supabase_service.dart';
 import './widgets/food_input_sheet_widget.dart';
 import './widgets/macro_summary_widget.dart';
 import './widgets/meal_log_widget.dart';
@@ -150,6 +151,16 @@ class _NutritionScreenState extends State<NutritionScreen>
           setState(() {
             _foodLogs[_selectedMeal]!.add(foodEntry);
           });
+          // Sync new food entry to cloud
+          SupabaseService.instance.saveNutritionLog(
+            mealIndex: _selectedMeal,
+            foodName: foodEntry['name'] as String? ?? '',
+            calories: (foodEntry['calories'] as num?)?.toInt() ?? 0,
+            protein: (foodEntry['protein'] as num?)?.toInt() ?? 0,
+            carbs: (foodEntry['carbs'] as num?)?.toInt() ?? 0,
+            fat: (foodEntry['fat'] as num?)?.toInt() ?? 0,
+            portion: foodEntry['portion'] as String? ?? '',
+          );
         },
       ),
     );

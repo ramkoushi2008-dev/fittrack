@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/app_export.dart';
 import '../../routes/app_routes.dart';
+import '../../services/supabase_service.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/custom_image_widget.dart';
 import './widgets/auth_card_widget.dart';
 
 class SignUpLoginScreen extends StatefulWidget {
@@ -19,6 +25,7 @@ class _SignUpLoginScreenState extends State<SignUpLoginScreen>
   late Animation<double> _heroFade;
   late Animation<Offset> _cardSlide;
   late Animation<double> _cardFade;
+  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
@@ -48,10 +55,26 @@ class _SignUpLoginScreenState extends State<SignUpLoginScreen>
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) _cardController.forward();
     });
+
+    // Listen for auth state changes to handle post-OAuth-redirect on web.
+    // When the browser returns from Google OAuth, Supabase fires a signedIn
+    // event which we catch here to complete navigation.
+    _authSubscription = SupabaseService.instance.client.auth.onAuthStateChange
+        .listen((data) async {
+          if (!mounted) return;
+          final event = data.event;
+          if (event == AuthChangeEvent.signedIn) {
+            await SupabaseService.instance.ensureUserProfile();
+            if (mounted) {
+              context.go(AppRoutes.personalizationQuestionnaireScreen);
+            }
+          }
+        });
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _heroController.dispose();
     _cardController.dispose();
     super.dispose();

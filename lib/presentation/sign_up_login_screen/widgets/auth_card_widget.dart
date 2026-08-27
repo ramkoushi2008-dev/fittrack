@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/app_export.dart';
+import '../../../services/supabase_service.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/custom_image_widget.dart';
 
 class AuthCardWidget extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -12,17 +17,13 @@ class AuthCardWidget extends StatefulWidget {
 }
 
 class _AuthCardWidgetState extends State<AuthCardWidget> {
-  // TODO: Replace with [Riverpod/Bloc] for production
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _showEmailForm = false;
-
-  // Mock credentials
-  static const _mockEmail = 'ram.sharma@fittrack.app';
-  static const _mockPassword = 'FitTrack@2026';
+  bool _isSignUp = false;
 
   @override
   void dispose() {
@@ -33,27 +34,31 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      widget.onLoginSuccess();
-    }
-  }
-
-  Future<void> _handleEmailLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (_emailController.text.trim() == _mockEmail &&
-          _passwordController.text == _mockPassword) {
-        widget.onLoginSuccess();
+    try {
+      if (kIsWeb) {
+        // On web, signInWithOAuth triggers a full-page redirect.
+        // The app will restart after the redirect; auth state is restored
+        // automatically by Supabase. We do NOT call onLoginSuccess() here.
+        await SupabaseService.instance.client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: '${Uri.base.origin}/',
+        );
+        // Execution stops here on web — the browser navigates away.
+        return;
       } else {
+        // On mobile, OAuth opens a browser and returns a session.
+        await SupabaseService.instance.client.auth.signInWithOAuth(
+          OAuthProvider.google,
+        );
+        await SupabaseService.instance.ensureUserProfile();
+        if (mounted) widget.onLoginSuccess();
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Invalid credentials — use the demo accounts below to sign in',
+              e.toString().replaceAll('AuthException: ', ''),
               style: GoogleFonts.manrope(color: Colors.white),
             ),
             backgroundColor: AppTheme.error,
@@ -64,6 +69,46 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleEmailAuth() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    try {
+      if (_isSignUp) {
+        await SupabaseService.instance.client.auth.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+      } else {
+        await SupabaseService.instance.client.auth.signInWithPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+      }
+      await SupabaseService.instance.ensureUserProfile();
+      if (mounted) widget.onLoginSuccess();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().replaceAll('AuthException: ', ''),
+              style: GoogleFonts.manrope(color: Colors.white),
+            ),
+            backgroundColor: AppTheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -137,6 +182,42 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
                 ),
               ),
             if (_showEmailForm) ...[
+              // Sign In / Sign Up toggle
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () => setState(() => _isSignUp = false),
+                    child: Text(
+                      'Sign In',
+                      style: GoogleFonts.manrope(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: !_isSignUp
+                            ? AppTheme.primary
+                            : AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(width: 1, height: 16, color: AppTheme.textMuted),
+                  const SizedBox(width: 16),
+                  GestureDetector(
+                    onTap: () => setState(() => _isSignUp = true),
+                    child: Text(
+                      'Sign Up',
+                      style: GoogleFonts.manrope(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _isSignUp
+                            ? AppTheme.primary
+                            : AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               Form(
                 key: _formKey,
                 child: Column(
@@ -186,7 +267,7 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleEmailLogin,
+                        onPressed: _isLoading ? null : _handleEmailAuth,
                         child: _isLoading
                             ? const SizedBox(
                                 width: 20,
@@ -196,40 +277,13 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
                                   color: Color(0xFF1A1A1A),
                                 ),
                               )
-                            : const Text('Sign In'),
+                            : Text(_isSignUp ? 'Create Account' : 'Sign In'),
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-            const SizedBox(height: 16),
-            // Demo credentials box
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.primary.withAlpha(77)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Demo Credentials',
-                    style: GoogleFonts.manrope(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _CredentialRow(label: 'Email', value: _mockEmail),
-                  const SizedBox(height: 4),
-                  _CredentialRow(label: 'Password', value: _mockPassword),
-                ],
-              ),
-            ),
             const SizedBox(height: 16),
             Text(
               'By continuing, you agree to our Terms of Service and Privacy Policy.',
@@ -300,47 +354,6 @@ class _GoogleSignInButton extends StatelessWidget {
                 ],
               ),
       ),
-    );
-  }
-}
-
-class _CredentialRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _CredentialRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: GoogleFonts.manrope(
-            fontSize: 12,
-            color: AppTheme.textSecondary,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: GoogleFonts.manrope(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            // Copy to clipboard feedback
-          },
-          child: const Icon(
-            Icons.copy_rounded,
-            size: 14,
-            color: AppTheme.primary,
-          ),
-        ),
-      ],
     );
   }
 }

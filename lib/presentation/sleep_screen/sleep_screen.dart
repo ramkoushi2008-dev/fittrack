@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/app_theme.dart';
+import '../../services/supabase_service.dart';
 import './widgets/sleep_duration_card_widget.dart';
 import './widgets/sleep_weekly_chart_widget.dart';
 import './widgets/sleep_consistency_widget.dart';
@@ -17,11 +18,32 @@ class SleepScreen extends StatefulWidget {
 class _SleepScreenState extends State<SleepScreen> {
   double _hoursSlept = 7.75;
   static const double _targetHours = 8.0;
+  bool _loadingLatest = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLatestSleepLog();
+  }
+
+  Future<void> _loadLatestSleepLog() async {
+    final log = await SupabaseService.instance.fetchLatestSleepLog();
+    if (log != null && mounted) {
+      setState(() {
+        _hoursSlept = (log['hours_slept'] as num?)?.toDouble() ?? 7.75;
+        _loadingLatest = false;
+      });
+    } else if (mounted) {
+      setState(() => _loadingLatest = false);
+    }
+  }
 
   void _onSleepAdded(double hours) {
     setState(() {
       _hoursSlept = hours.clamp(0.0, 24.0);
     });
+    // Sync to cloud
+    SupabaseService.instance.saveSleepLog(hoursSlept: hours);
   }
 
   @override

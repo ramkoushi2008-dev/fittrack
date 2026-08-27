@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
+import '../../services/supabase_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Data model for a single set
@@ -18,6 +21,7 @@ class ActiveExercise {
   final String muscleGroup;
   final IconData icon;
   final int defaultRestSec;
+  final double suggestedWeight;
   List<ExerciseSet> sets;
 
   ActiveExercise({
@@ -27,7 +31,132 @@ class ActiveExercise {
     required this.defaultRestSec,
     required int numSets,
     int defaultReps = 0,
-  }) : sets = List.generate(numSets, (_) => ExerciseSet(reps: defaultReps));
+    this.suggestedWeight = 0,
+  }) : sets = List.generate(
+         numSets,
+         (_) => ExerciseSet(reps: defaultReps, weight: suggestedWeight),
+       );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Weight suggestion logic
+// ─────────────────────────────────────────────────────────────────────────────
+double _suggestWeight(String exerciseName, String experience) {
+  final name = exerciseName.toLowerCase();
+  final isAdv = experience == 'Advanced';
+  final isBeg = experience == 'Beginner';
+
+  // Bodyweight exercises → 0 kg
+  const bodyweightKeywords = [
+    'push-up',
+    'push up',
+    'pull-up',
+    'pull up',
+    'dip',
+    'squat',
+    'lunge',
+    'plank',
+    'crunch',
+    'burpee',
+    'mountain climber',
+    'high knee',
+    'jump',
+    'superman',
+    'glute bridge',
+    'calf raise',
+    'inverted row',
+    'pike',
+    'band pull',
+    'reverse lunge',
+    'leg raise',
+    'russian twist',
+    'wide push',
+  ];
+  for (final kw in bodyweightKeywords) {
+    if (name.contains(kw)) return 0;
+  }
+
+  // Resistance band exercises → 0 (band tension, not kg)
+  if (name.contains('band')) return 0;
+
+  // Heavy compound lifts
+  if (name.contains('deadlift') && !name.contains('romanian')) {
+    return isAdv ? 100.0 : (isBeg ? 40.0 : 60.0);
+  }
+  if (name.contains('barbell squat') || name.contains('back squat')) {
+    return isAdv ? 80.0 : (isBeg ? 30.0 : 50.0);
+  }
+  if (name.contains('barbell bench') || name.contains('bench press')) {
+    return isAdv ? 70.0 : (isBeg ? 25.0 : 45.0);
+  }
+  if (name.contains('overhead press') || name.contains('barbell shoulder')) {
+    return isAdv ? 50.0 : (isBeg ? 20.0 : 35.0);
+  }
+
+  // Romanian / stiff-leg deadlift
+  if (name.contains('romanian deadlift')) {
+    return isAdv ? 60.0 : (isBeg ? 20.0 : 40.0);
+  }
+
+  // Dumbbell compounds
+  if (name.contains('dumbbell incline') || name.contains('incline press')) {
+    return isAdv ? 24.0 : (isBeg ? 8.0 : 14.0);
+  }
+  if (name.contains('dumbbell shoulder press') ||
+      name.contains('dumbbell press')) {
+    return isAdv ? 20.0 : (isBeg ? 6.0 : 12.0);
+  }
+  if (name.contains('dumbbell row')) {
+    return isAdv ? 28.0 : (isBeg ? 10.0 : 18.0);
+  }
+  if (name.contains('dumbbell lunge') || name.contains('dumbbell squat')) {
+    return isAdv ? 20.0 : (isBeg ? 8.0 : 14.0);
+  }
+  if (name.contains('dumbbell fl')) {
+    return isAdv ? 14.0 : (isBeg ? 5.0 : 9.0);
+  }
+
+  // Isolation — curls
+  if (name.contains('barbell curl')) {
+    return isAdv ? 30.0 : (isBeg ? 10.0 : 18.0);
+  }
+  if (name.contains('hammer curl') ||
+      name.contains('bicep curl') ||
+      name.contains('dumbbell curl')) {
+    return isAdv ? 16.0 : (isBeg ? 6.0 : 10.0);
+  }
+
+  // Isolation — triceps
+  if (name.contains('skull crusher')) {
+    return isAdv ? 24.0 : (isBeg ? 8.0 : 14.0);
+  }
+  if (name.contains('tricep pushdown') || name.contains('cable')) {
+    return isAdv ? 30.0 : (isBeg ? 10.0 : 18.0);
+  }
+
+  // Shoulders isolation
+  if (name.contains('lateral raise') || name.contains('front raise')) {
+    return isAdv ? 10.0 : (isBeg ? 3.0 : 6.0);
+  }
+  if (name.contains('face pull')) {
+    return isAdv ? 20.0 : (isBeg ? 8.0 : 13.0);
+  }
+
+  // Leg press / leg curl
+  if (name.contains('leg press')) {
+    return isAdv ? 100.0 : (isBeg ? 40.0 : 60.0);
+  }
+  if (name.contains('leg curl') || name.contains('leg extension')) {
+    return isAdv ? 40.0 : (isBeg ? 15.0 : 25.0);
+  }
+
+  // Seated cable row
+  if (name.contains('seated cable row') || name.contains('cable row')) {
+    return isAdv ? 50.0 : (isBeg ? 18.0 : 30.0);
+  }
+
+  // Default for any other weighted exercise
+  return isAdv ? 20.0 : (isBeg ? 8.0 : 12.0);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,28 +181,49 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
   int _elapsedSeconds = 0;
   Timer? _workoutTimer;
   bool _paused = false;
+  String _experience = 'Beginner';
 
   @override
   void initState() {
     super.initState();
-    _activeExercises = widget.exercises.map((e) {
-      final repsRaw = e['reps'];
-      final defaultReps = repsRaw is int ? repsRaw : 0;
-      return ActiveExercise(
-        name: e['name'] as String,
-        muscleGroup: e['muscleGroup'] as String,
-        icon: e['icon'] as IconData,
-        defaultRestSec: (e['restSec'] as int?) ?? 60,
-        numSets: (e['sets'] as int?) ?? 3,
-        defaultReps: defaultReps,
-      );
-    }).toList();
+    _activeExercises = [];
+    _loadExperienceAndBuild();
     _startTimer();
+  }
+
+  Future<void> _loadExperienceAndBuild() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('questionnaire_answers');
+      if (raw != null) {
+        final Map<String, dynamic> saved =
+            jsonDecode(raw) as Map<String, dynamic>;
+        _experience = saved['experience'] as String? ?? 'Beginner';
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+    setState(() {
+      _activeExercises = widget.exercises.map((e) {
+        final repsRaw = e['reps'];
+        final defaultReps = repsRaw is int ? repsRaw : 0;
+        final suggested = _suggestWeight(e['name'] as String, _experience);
+        return ActiveExercise(
+          name: e['name'] as String,
+          muscleGroup: e['muscleGroup'] as String,
+          icon: e['icon'] as IconData,
+          defaultRestSec: (e['restSec'] as int?) ?? 60,
+          numSets: (e['sets'] as int?) ?? 3,
+          defaultReps: defaultReps,
+          suggestedWeight: suggested,
+        );
+      }).toList();
+    });
   }
 
   void _startTimer() {
     _workoutTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!_paused) setState(() => _elapsedSeconds++);
+      if (!_paused && mounted) setState(() => _elapsedSeconds++);
     });
   }
 
@@ -103,7 +253,6 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
   bool get _allDone => _doneSets == _totalSets && _totalSets > 0;
 
   double _estimateCalories() {
-    // MET ~5 for moderate strength training, assume 70kg user
     final minutes = _elapsedSeconds / 60.0;
     return (5.0 * 70 * 3.5 / 200) * minutes;
   }
@@ -128,15 +277,12 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
     }
     setState(() => set.done = true);
 
-    // Check if all sets of this exercise are done → show rest
     final allSetsOfExerciseDone = exercise.sets.every((s) => s.done);
     if (allSetsOfExerciseDone && !_allDone) {
       _showRestPage(exercise.defaultRestSec);
     } else if (_allDone) {
-      // small delay then show completion
       Future.delayed(const Duration(milliseconds: 400), _showCompletion);
     } else {
-      // single set done, show rest between sets
       _showRestPage(exercise.defaultRestSec);
     }
   }
@@ -303,18 +449,22 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
             const SizedBox(height: 12),
             // ── Exercise list ────────────────────────────────────────────
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                itemCount: _activeExercises.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, i) {
-                  return _ActiveExerciseCard(
-                    exercise: _activeExercises[i],
-                    onSetDone: (setIdx) =>
-                        _onSetDone(_activeExercises[i], setIdx),
-                  );
-                },
-              ),
+              child: _activeExercises.isEmpty
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppTheme.primary),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      itemCount: _activeExercises.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) {
+                        return _ActiveExerciseCard(
+                          exercise: _activeExercises[i],
+                          onSetDone: (setIdx) =>
+                              _onSetDone(_activeExercises[i], setIdx),
+                        );
+                      },
+                    ),
             ),
             // ── Finish button ────────────────────────────────────────────
             Padding(
@@ -354,6 +504,8 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
   }
 
   void _confirmExit(BuildContext context) {
+    // Capture navigator before async gap
+    final navigator = Navigator.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -381,10 +533,11 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
           TextButton(
             onPressed: () {
               _workoutTimer?.cancel();
-              Navigator.pop(context); // close dialog
+              // Close dialog first
+              Navigator.pop(context);
               // Only show completion if at least one set was done
               if (_doneSets > 0) {
-                Navigator.of(context).pushReplacement(
+                navigator.pushReplacement(
                   PageRouteBuilder(
                     pageBuilder: (_, __, ___) => WorkoutCompletionScreen(
                       workoutLabel: widget.workoutLabel,
@@ -403,7 +556,8 @@ class _WorkoutActiveScreenState extends State<WorkoutActiveScreen> {
                   ),
                 );
               } else {
-                Navigator.pop(context); // close active screen with no stats
+                // Nothing done — just go back to workout plan screen
+                navigator.pop();
               }
             },
             child: Text(
@@ -440,9 +594,12 @@ class _ActiveExerciseCardState extends State<_ActiveExerciseCard> {
     _repControllers = widget.exercise.sets
         .map((s) => TextEditingController(text: s.reps > 0 ? '${s.reps}' : ''))
         .toList();
-    _weightControllers = widget.exercise.sets
-        .map((_) => TextEditingController())
-        .toList();
+    _weightControllers = widget.exercise.sets.map((s) {
+      final suggested = s.weight > 0
+          ? s.weight.toStringAsFixed(s.weight % 1 == 0 ? 0 : 1)
+          : '';
+      return TextEditingController(text: suggested);
+    }).toList();
   }
 
   @override
@@ -460,6 +617,7 @@ class _ActiveExerciseCardState extends State<_ActiveExerciseCard> {
   Widget build(BuildContext context) {
     final exercise = widget.exercise;
     final allDone = exercise.sets.every((s) => s.done);
+    final hasSuggestedWeight = exercise.suggestedWeight > 0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -544,6 +702,39 @@ class _ActiveExerciseCardState extends State<_ActiveExerciseCard> {
                   ),
               ],
             ),
+            // Suggested weight hint
+            if (hasSuggestedWeight && !allDone) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 12,
+                      color: AppTheme.primary,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Suggested: ${exercise.suggestedWeight.toStringAsFixed(exercise.suggestedWeight % 1 == 0 ? 0 : 1)} kg — edit below',
+                      style: GoogleFonts.manrope(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 14),
             // Column headers
             Row(
@@ -574,13 +765,16 @@ class _ActiveExerciseCardState extends State<_ActiveExerciseCard> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Weight (kg)',
+                    hasSuggestedWeight ? 'Weight (kg) ✏️' : 'Weight (kg)',
                     style: GoogleFonts.manrope(
                       fontSize: 11,
-                      color: AppTheme.textMuted,
+                      color: hasSuggestedWeight
+                          ? AppTheme.primary
+                          : AppTheme.textMuted,
                       fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -622,13 +816,18 @@ class _ActiveExerciseCardState extends State<_ActiveExerciseCard> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Weight input
+                    // Weight input (pre-filled with suggestion, editable)
                     Expanded(
                       child: _SetInputField(
                         controller: _weightControllers[i],
-                        hint: '0',
+                        hint: hasSuggestedWeight
+                            ? exercise.suggestedWeight.toStringAsFixed(
+                                exercise.suggestedWeight % 1 == 0 ? 0 : 1,
+                              )
+                            : '0',
                         enabled: !set.done,
                         isDecimal: true,
+                        highlighted: hasSuggestedWeight && !set.done,
                         onChanged: (v) {
                           set.weight = double.tryParse(v) ?? 0;
                         },
@@ -664,7 +863,7 @@ class _ActiveExerciseCardState extends State<_ActiveExerciseCard> {
                           ),
                         ),
                         child: Icon(
-                          set.done ? Icons.check_rounded : Icons.check_rounded,
+                          Icons.check_rounded,
                           size: 18,
                           color: set.done
                               ? const Color(0xFF1A1A1A)
@@ -688,6 +887,7 @@ class _SetInputField extends StatelessWidget {
   final String hint;
   final bool enabled;
   final bool isDecimal;
+  final bool highlighted;
   final void Function(String) onChanged;
 
   const _SetInputField({
@@ -696,6 +896,7 @@ class _SetInputField extends StatelessWidget {
     required this.enabled,
     required this.onChanged,
     this.isDecimal = false,
+    this.highlighted = false,
   });
 
   @override
@@ -703,11 +904,17 @@ class _SetInputField extends StatelessWidget {
     return Container(
       height: 38,
       decoration: BoxDecoration(
-        color: enabled ? AppTheme.surfaceVariantDark : AppTheme.surfaceDark,
+        color: enabled
+            ? (highlighted
+                  ? AppTheme.primaryContainer
+                  : AppTheme.surfaceVariantDark)
+            : AppTheme.surfaceDark,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: enabled
-              ? AppTheme.textMuted.withAlpha(80)
+              ? (highlighted
+                    ? AppTheme.primary.withAlpha(120)
+                    : AppTheme.textMuted.withAlpha(80))
               : Colors.transparent,
         ),
       ),
@@ -722,14 +929,18 @@ class _SetInputField extends StatelessWidget {
         style: GoogleFonts.manrope(
           fontSize: 14,
           fontWeight: FontWeight.w700,
-          color: enabled ? AppTheme.textPrimary : AppTheme.textMuted,
+          color: enabled
+              ? (highlighted ? AppTheme.primary : AppTheme.textPrimary)
+              : AppTheme.textMuted,
           fontFeatures: [const FontFeature.tabularFigures()],
         ),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.manrope(
             fontSize: 14,
-            color: AppTheme.textMuted,
+            color: highlighted
+                ? AppTheme.primary.withAlpha(150)
+                : AppTheme.textMuted,
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -824,7 +1035,6 @@ class _RestTimerPageState extends State<RestTimerPage>
           child: Column(
             children: [
               const SizedBox(height: 20),
-              // Title
               Text(
                 isDone ? 'Rest Complete!' : 'Rest Time',
                 style: GoogleFonts.manrope(
@@ -844,7 +1054,6 @@ class _RestTimerPageState extends State<RestTimerPage>
                 ),
               ),
               const SizedBox(height: 40),
-              // Circular countdown
               SizedBox(
                 width: 220,
                 height: 220,
@@ -910,7 +1119,6 @@ class _RestTimerPageState extends State<RestTimerPage>
                 ),
               ),
               const SizedBox(height: 36),
-              // Add time buttons
               if (!isDone) ...[
                 Text(
                   'Need more rest?',
@@ -932,7 +1140,6 @@ class _RestTimerPageState extends State<RestTimerPage>
                 ),
               ],
               const Spacer(),
-              // Skip / Continue button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -1049,9 +1256,22 @@ class _WorkoutCompletionScreenState extends State<WorkoutCompletionScreen>
       curve: Curves.easeOutCubic,
     );
     Future.delayed(const Duration(milliseconds: 100), () {
-      _scaleController.forward();
-      _fadeController.forward();
+      if (mounted) {
+        _scaleController.forward();
+        _fadeController.forward();
+      }
     });
+    // Sync workout log to cloud
+    _saveToCloud();
+  }
+
+  Future<void> _saveToCloud() async {
+    await SupabaseService.instance.saveWorkoutLog(
+      workoutLabel: widget.workoutLabel,
+      durationSeconds: widget.durationSeconds,
+      caloriesBurned: widget.caloriesBurned,
+      totalSets: widget.totalSets,
+    );
   }
 
   @override
@@ -1082,7 +1302,6 @@ class _WorkoutCompletionScreenState extends State<WorkoutCompletionScreen>
             child: Column(
               children: [
                 const SizedBox(height: 40),
-                // Trophy / celebration
                 ScaleTransition(
                   scale: _scaleAnim,
                   child: Container(
@@ -1121,7 +1340,6 @@ class _WorkoutCompletionScreenState extends State<WorkoutCompletionScreen>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 36),
-                // Stats grid
                 Row(
                   children: [
                     Expanded(
@@ -1167,7 +1385,6 @@ class _WorkoutCompletionScreenState extends State<WorkoutCompletionScreen>
                   ],
                 ),
                 const SizedBox(height: 28),
-                // Motivational message
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
@@ -1194,12 +1411,10 @@ class _WorkoutCompletionScreenState extends State<WorkoutCompletionScreen>
                   ),
                 ),
                 const Spacer(),
-                // Back to workouts
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Pop back to workout screen
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     style: ElevatedButton.styleFrom(

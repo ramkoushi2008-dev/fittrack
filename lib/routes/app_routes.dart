@@ -9,6 +9,9 @@ import '../presentation/sign_up_login_screen/sign_up_login_screen.dart';
 import '../presentation/sleep_screen/sleep_screen.dart';
 import '../presentation/workout_screen/workout_screen.dart';
 import '../widgets/app_scaffold.dart';
+import '../presentation/settings_screen/settings_screen.dart';
+import '../presentation/account_screen/account_screen.dart';
+import '../presentation/achievements_screen/achievements_screen.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -20,6 +23,9 @@ class AppRoutes {
   static const String activityScreen = '/activity-screen';
   static const String nutritionScreen = '/nutrition-screen';
   static const String sleepScreen = '/sleep-screen';
+  static const String settingsScreen = '/settings-screen';
+  static const String accountScreen = '/account-screen';
+  static const String achievementsScreen = '/achievements-screen';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -129,6 +135,33 @@ final GoRouter appRouter = GoRouter(
               path: AppRoutes.sleepScreen,
               pageBuilder: (context, state) =>
                   const NoTransitionPage(child: SleepScreen()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.settingsScreen,
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: SettingsScreen()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.accountScreen,
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: AccountScreen()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.achievementsScreen,
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: AchievementsScreen()),
             ),
           ],
         ),

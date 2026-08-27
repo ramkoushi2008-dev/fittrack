@@ -61,6 +61,24 @@ class _AppNavigationState extends State<AppNavigation>
       selectedIcon: Icons.bedtime_rounded,
       branchIndex: 4,
     ),
+    _TabSpec(
+      label: 'Settings',
+      icon: Icons.settings_outlined,
+      selectedIcon: Icons.settings_rounded,
+      branchIndex: 5,
+    ),
+    _TabSpec(
+      label: 'Account',
+      icon: Icons.person_outline_rounded,
+      selectedIcon: Icons.person_rounded,
+      branchIndex: 6,
+    ),
+    _TabSpec(
+      label: 'Awards',
+      icon: Icons.emoji_events_outlined,
+      selectedIcon: Icons.emoji_events_rounded,
+      branchIndex: 7,
+    ),
   ];
 
   @override
