@@ -12,7 +12,7 @@ class WorkoutProgressCardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppTheme.primary.withAlpha(38), width: 1),
       ),
@@ -26,19 +26,19 @@ class WorkoutProgressCardWidget extends StatelessWidget {
                 style: GoogleFonts.manrope(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary,
+                  color: context.appTextSecondary,
                 ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceVariantDark,
+                  color: context.appSurfaceVariant,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.more_horiz_rounded,
-                  color: AppTheme.textSecondary,
+                  color: context.appTextSecondary,
                   size: 16,
                 ),
               ),
@@ -62,38 +62,38 @@ class WorkoutProgressCardWidget extends StatelessWidget {
                       style: GoogleFonts.manrope(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
+                        color: context.appTextPrimary,
                         height: 1.2,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.timer_outlined,
                           size: 14,
-                          color: AppTheme.textSecondary,
+                          color: context.appTextSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '55 min',
                           style: GoogleFonts.manrope(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Icon(
+                        Icon(
                           Icons.signal_cellular_alt_rounded,
                           size: 14,
-                          color: AppTheme.textSecondary,
+                          color: context.appTextSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Intermediate',
                           style: GoogleFonts.manrope(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                         ),
                       ],
@@ -176,7 +176,7 @@ class _MiniRingPainter extends CustomPainter {
     const startAngle = -math.pi / 2;
 
     final trackPaint = Paint()
-      ..color = AppTheme.surfaceVariantDark
+      ..color = context.appSurfaceVariant
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

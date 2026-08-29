@@ -94,7 +94,7 @@ class _MetricCard extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(20),
         border: Border(left: BorderSide(color: color, width: 3)),
       ),
@@ -122,7 +122,7 @@ class _MetricCard extends StatelessWidget {
             metric['label'] as String,
             style: GoogleFonts.manrope(
               fontSize: 11,
-              color: AppTheme.textMuted,
+              color: context.appTextMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -132,7 +132,7 @@ class _MetricCard extends StatelessWidget {
             style: GoogleFonts.manrope(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: AppTheme.textPrimary,
+              color: context.appTextPrimary,
               fontFeatures: [const FontFeature.tabularFigures()],
             ),
           ),

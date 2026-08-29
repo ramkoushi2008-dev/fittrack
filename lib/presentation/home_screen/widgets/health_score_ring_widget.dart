@@ -45,12 +45,12 @@ class _HealthScoreRingWidgetState extends State<HealthScoreRingWidget>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppTheme.surfaceDark, AppTheme.primary.withAlpha(13)],
+          colors: [context.appSurface, AppTheme.primary.withAlpha(13)],
         ),
       ),
       child: Column(
@@ -60,7 +60,7 @@ class _HealthScoreRingWidgetState extends State<HealthScoreRingWidget>
             style: GoogleFonts.manrope(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textSecondary,
+              color: context.appTextSecondary,
             ),
           ),
           const SizedBox(height: 20),
@@ -74,7 +74,7 @@ class _HealthScoreRingWidgetState extends State<HealthScoreRingWidget>
                   painter: _HealthRingPainter(
                     progress: _scoreAnimation.value,
                     ringColor: AppTheme.primary,
-                    trackColor: AppTheme.surfaceVariantDark,
+                    trackColor: context.appSurfaceVariant,
                   ),
                   child: Center(
                     child: Column(
@@ -93,7 +93,7 @@ class _HealthScoreRingWidgetState extends State<HealthScoreRingWidget>
                           'Completed',
                           style: GoogleFonts.manrope(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                         ),
                       ],
@@ -108,7 +108,7 @@ class _HealthScoreRingWidgetState extends State<HealthScoreRingWidget>
             '72% of today\'s health goals completed',
             style: GoogleFonts.manrope(
               fontSize: 13,
-              color: AppTheme.textSecondary,
+              color: context.appTextSecondary,
               height: 1.4,
             ),
             textAlign: TextAlign.center,

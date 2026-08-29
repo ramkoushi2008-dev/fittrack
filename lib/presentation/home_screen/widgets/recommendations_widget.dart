@@ -45,7 +45,7 @@ class RecommendationsWidget extends StatelessWidget {
               style: GoogleFonts.manrope(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: context.appTextPrimary,
               ),
             ),
             Container(
@@ -94,7 +94,7 @@ class _RecommendationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(16),
         border: Border(left: BorderSide(color: color, width: 3)),
       ),
@@ -119,7 +119,7 @@ class _RecommendationCard extends StatelessWidget {
               recommendation['text'] as String,
               style: GoogleFonts.manrope(
                 fontSize: 13,
-                color: AppTheme.textSecondary,
+                color: context.appTextSecondary,
                 height: 1.5,
               ),
             ),

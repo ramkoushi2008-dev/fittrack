@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import '../../../theme/app_theme.dart';
+import '../../../services/health_service.dart';
 
 class StepRingWidget extends StatefulWidget {
   final int selectedMetric;
-  const StepRingWidget({required this.selectedMetric, super.key});
+
+  /// Live data pulled from HealthKit / Health Connect. When null, demo
+  /// placeholder data is shown instead (e.g. before the user connects).
+  final DailySummary? summary;
+
+  const StepRingWidget({
+    required this.selectedMetric,
+    this.summary,
+    super.key,
+  });
 
   @override
   State<StepRingWidget> createState() => _StepRingWidgetState();
@@ -13,11 +23,116 @@ class StepRingWidget extends StatefulWidget {
 
 class _StepRingWidgetState extends State<StepRingWidget>
     with SingleTickerProviderStateMixin {
-  // TODO: Replace with [Riverpod/Bloc] for production
   late AnimationController _controller;
   late Animation<double> _anim;
 
-  static const List<Map<String, dynamic>> _metricData = [
+  static const int _stepsTarget = 10000;
+  static const int _caloriesTarget = 2200;
+  static const int _activeMinTarget = 60;
+
+  List<Map<String, dynamic>> _buildMetricData() {
+    final summary = widget.summary;
+    if (summary == null) {
+      return _demoMetricData;
+    }
+
+    final stepsProgress = (summary.steps / _stepsTarget).clamp(0.0, 1.0);
+    final caloriesProgress =
+        (summary.caloriesKcal / _caloriesTarget).clamp(0.0, 1.0);
+    final activeProgress =
+        (summary.activeMinutes / _activeMinTarget).clamp(0.0, 1.0);
+
+    return [
+      {
+        'value': _formatInt(summary.steps),
+        'target': _formatInt(_stepsTarget),
+        'unit': 'steps',
+        'progress': stepsProgress,
+        'color': AppTheme.stepsColor,
+        'sub': [
+          {
+            'label': 'Distance',
+            'value': '${summary.distanceKm.toStringAsFixed(1)} km',
+            'icon': Icons.route_rounded,
+          },
+          {
+            'label': 'Calories',
+            'value': '${summary.caloriesKcal.round()} kcal',
+            'icon': Icons.local_fire_department_outlined,
+          },
+          {
+            'label': 'Active Min',
+            'value': '${summary.activeMinutes} min',
+            'icon': Icons.timer_outlined,
+          },
+        ],
+      },
+      {
+        'value': summary.caloriesKcal.round().toString(),
+        'target': _caloriesTarget.toString(),
+        'unit': 'kcal',
+        'progress': caloriesProgress,
+        'color': AppTheme.caloriesColor,
+        'sub': [
+          {
+            'label': 'Heart Rate',
+            'value': summary.avgHeartRateBpm == null
+                ? '— bpm'
+                : '${summary.avgHeartRateBpm!.round()} bpm',
+            'icon': Icons.favorite_outline_rounded,
+          },
+          {
+            'label': 'Steps',
+            'value': _formatInt(summary.steps),
+            'icon': Icons.directions_walk_rounded,
+          },
+          {
+            'label': 'Distance',
+            'value': '${summary.distanceKm.toStringAsFixed(1)} km',
+            'icon': Icons.route_rounded,
+          },
+        ],
+      },
+      {
+        'value': summary.activeMinutes.toString(),
+        'target': _activeMinTarget.toString(),
+        'unit': 'min',
+        'progress': activeProgress,
+        'color': AppTheme.workoutColor,
+        'sub': [
+          {
+            'label': 'Workouts',
+            'value': '${summary.workoutsToday} done',
+            'icon': Icons.fitness_center_rounded,
+          },
+          {
+            'label': 'Heart Rate',
+            'value': summary.avgHeartRateBpm == null
+                ? '— bpm'
+                : '${summary.avgHeartRateBpm!.round()} bpm',
+            'icon': Icons.favorite_outline_rounded,
+          },
+          {
+            'label': 'Steps',
+            'value': _formatInt(summary.steps),
+            'icon': Icons.directions_walk_rounded,
+          },
+        ],
+      },
+    ];
+  }
+
+  static String _formatInt(int value) {
+    final s = value.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
+  }
+
+  static const List<Map<String, dynamic>> _demoMetricData = [
     {
       'value': '7,240',
       'target': '10,000',
@@ -76,9 +191,12 @@ class _StepRingWidgetState extends State<StepRingWidget>
     },
   ];
 
+  late List<Map<String, dynamic>> _metricData;
+
   @override
   void initState() {
     super.initState();
+    _metricData = _buildMetricData();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -93,7 +211,12 @@ class _StepRingWidgetState extends State<StepRingWidget>
   @override
   void didUpdateWidget(StepRingWidget old) {
     super.didUpdateWidget(old);
-    if (old.selectedMetric != widget.selectedMetric) {
+    _metricData = _buildMetricData();
+    // Re-animate whenever the selected tab changes OR fresh live data comes
+    // in (e.g. from the periodic health refresh), so the ring reflects the
+    // latest progress in near real time.
+    if (old.selectedMetric != widget.selectedMetric ||
+        old.summary != widget.summary) {
       _anim =
           Tween<double>(
             begin: 0,
@@ -122,7 +245,7 @@ class _StepRingWidgetState extends State<StepRingWidget>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -137,7 +260,7 @@ class _StepRingWidgetState extends State<StepRingWidget>
                   painter: _RingPainter(
                     progress: _anim.value,
                     color: color,
-                    trackColor: AppTheme.surfaceVariantDark,
+                    trackColor: context.appSurfaceVariant,
                   ),
                   child: Center(
                     child: Column(
@@ -156,7 +279,7 @@ class _StepRingWidgetState extends State<StepRingWidget>
                           data['unit'] as String,
                           style: GoogleFonts.manrope(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                         ),
                       ],
@@ -191,7 +314,7 @@ class _StepRingWidgetState extends State<StepRingWidget>
                     style: GoogleFonts.manrope(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
+                      color: context.appTextPrimary,
                       fontFeatures: [const FontFeature.tabularFigures()],
                     ),
                   ),
@@ -199,7 +322,7 @@ class _StepRingWidgetState extends State<StepRingWidget>
                     sub['label'] as String,
                     style: GoogleFonts.manrope(
                       fontSize: 11,
-                      color: AppTheme.textMuted,
+                      color: context.appTextMuted,
                     ),
                   ),
                 ],

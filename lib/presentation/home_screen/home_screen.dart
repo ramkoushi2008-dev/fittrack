@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isTablet = MediaQuery.of(context).size.width >= 600;
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
+      backgroundColor: context.appBackground,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -52,14 +52,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: GoogleFonts.manrope(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.textPrimary,
+                              color: context.appTextPrimary,
                             ),
                           ),
                           Text(
                             _formatDate(),
                             style: GoogleFonts.manrope(
                               fontSize: 13,
-                              color: AppTheme.textSecondary,
+                              color: context.appTextSecondary,
                             ),
                           ),
                         ],
@@ -72,12 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceDark,
+                            color: context.appSurface,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.notifications_outlined,
-                            color: AppTheme.textPrimary,
+                            color: context.appTextPrimary,
                             size: 22,
                           ),
                         ),
@@ -112,10 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            color: AppTheme.surfaceVariantDark,
-                            child: const Icon(
+                            color: context.appSurfaceVariant,
+                            child: Icon(
                               Icons.person_rounded,
-                              color: AppTheme.textSecondary,
+                              color: context.appTextSecondary,
                             ),
                           ),
                         ),
@@ -162,12 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: GoogleFonts.manrope(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        color: context.appTextPrimary,
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.notifications_outlined,
-                      color: AppTheme.textSecondary,
+                      color: context.appTextSecondary,
                       size: 20,
                     ),
                   ],
@@ -202,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: GoogleFonts.manrope(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        color: context.appTextPrimary,
                       ),
                     ),
                     Text(

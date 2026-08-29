@@ -45,5 +45,20 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>FitTrack reads your steps, calories, distance, heart rate and workouts from the Health app so your progress updates automatically.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>FitTrack does not write data to Health at this time.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.example.fittrack.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.example.fittrack</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

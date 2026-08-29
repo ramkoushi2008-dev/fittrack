@@ -12,7 +12,7 @@ class WorkoutHistoryCardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -27,14 +27,14 @@ class WorkoutHistoryCardWidget extends StatelessWidget {
                 style: GoogleFonts.manrope(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
+                  color: context.appTextPrimary,
                 ),
               ),
               Text(
                 workoutData['date'] as String,
                 style: GoogleFonts.manrope(
                   fontSize: 11,
-                  color: AppTheme.textMuted,
+                  color: context.appTextMuted,
                   fontFeatures: [const FontFeature.tabularFigures()],
                 ),
               ),
@@ -44,31 +44,31 @@ class WorkoutHistoryCardWidget extends StatelessWidget {
           // Duration + reps row
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.timer_outlined,
                 size: 13,
-                color: AppTheme.textSecondary,
+                color: context.appTextSecondary,
               ),
               const SizedBox(width: 4),
               Text(
                 workoutData['duration'] as String,
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: AppTheme.textSecondary,
+                  color: context.appTextSecondary,
                 ),
               ),
               const SizedBox(width: 12),
-              const Icon(
+              Icon(
                 Icons.repeat_rounded,
                 size: 13,
-                color: AppTheme.textSecondary,
+                color: context.appTextSecondary,
               ),
               const SizedBox(width: 4),
               Text(
                 workoutData['reps'] as String,
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: AppTheme.textSecondary,
+                  color: context.appTextSecondary,
                 ),
               ),
             ],
@@ -135,7 +135,7 @@ class _MetricTile extends StatelessWidget {
               label,
               style: GoogleFonts.manrope(
                 fontSize: 11,
-                color: AppTheme.textMuted,
+                color: context.appTextMuted,
               ),
             ),
           ],
@@ -146,7 +146,7 @@ class _MetricTile extends StatelessWidget {
           style: GoogleFonts.manrope(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: context.appTextPrimary,
             fontFeatures: [const FontFeature.tabularFigures()],
           ),
         ),

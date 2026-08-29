@@ -39,6 +39,16 @@ class PrivacyPolicyScreen extends StatelessWidget {
                               'We collect workout logs, nutrition entries, sleep records, and activity data that you voluntarily enter into the app. This data is stored securely in your personal account.',
                         ),
                         _PolicyItem(
+                          subtitle: 'Connected Health Apps',
+                          text:
+                              'If you connect Health Data, we read steps, calories burned, distance, heart rate, and workout sessions from Apple Health or Android Health Connect (which may include data synced there by other apps like Google Fit, Samsung Health, Fitbit, or Strava). This only happens if you grant permission, and you can revoke access at any time from your phone\'s system settings.',
+                        ),
+                        _PolicyItem(
+                          subtitle: 'Screen Time Data (Android)',
+                          text:
+                              'If you enable sleep detection, we use Android\'s Usage Access permission to look at when your screen was on or off overnight, and suggest a sleep session for you to confirm or adjust. We do not see which apps you used, only screen on/off timestamps, and nothing is logged as sleep without your confirmation. This feature requires a permission you grant manually in system settings and is not available on iOS.',
+                        ),
+                        _PolicyItem(
                           subtitle: 'Device Information',
                           text:
                               'We may collect information about the devices you link to your account, including device name and type, to provide a connected experience.',
@@ -144,7 +154,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         _PolicyItem(
                           subtitle: 'Account Deletion',
                           text:
-                              'You can permanently delete your account and all associated data at any time from the Account screen. This action is irreversible and removes all your data from our servers.',
+                              'You can permanently delete your account and all associated data at any time from the Account screen. This action is irreversible: your workout, nutrition, sleep, and device data are removed from our database immediately, and your sign-in credential is removed from our authentication system shortly after.',
                         ),
                         _PolicyItem(
                           subtitle: 'Opt-Out',
@@ -243,7 +253,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   Widget _buildLastUpdated() {
     return Text(
-      'Last updated: August 16, 2026',
+      'Last updated: August 28, 2026',
       style: GoogleFonts.manrope(
         fontSize: 12,
         color: AppTheme.textMuted,

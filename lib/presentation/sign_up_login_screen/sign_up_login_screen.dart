@@ -65,8 +65,14 @@ class _SignUpLoginScreenState extends State<SignUpLoginScreen>
           final event = data.event;
           if (event == AuthChangeEvent.signedIn) {
             await SupabaseService.instance.ensureUserProfile();
+            final onboarded = await SupabaseService.instance
+                .hasCompletedOnboarding();
             if (mounted) {
-              context.go(AppRoutes.personalizationQuestionnaireScreen);
+              context.go(
+                onboarded
+                    ? AppRoutes.homeScreen
+                    : AppRoutes.personalizationQuestionnaireScreen,
+              );
             }
           }
         });
@@ -165,18 +171,23 @@ class _SignUpLoginScreenState extends State<SignUpLoginScreen>
                         child: SizedBox(
                           width: 480,
                           child: AuthCardWidget(
-                            onLoginSuccess: () {
+                            onLoginSuccess: ({required onboarded}) {
                               context.go(
-                                AppRoutes.personalizationQuestionnaireScreen,
+                                onboarded
+                                    ? AppRoutes.homeScreen
+                                    : AppRoutes
+                                          .personalizationQuestionnaireScreen,
                               );
                             },
                           ),
                         ),
                       )
                     : AuthCardWidget(
-                        onLoginSuccess: () {
+                        onLoginSuccess: ({required onboarded}) {
                           context.go(
-                            AppRoutes.personalizationQuestionnaireScreen,
+                            onboarded
+                                ? AppRoutes.homeScreen
+                                : AppRoutes.personalizationQuestionnaireScreen,
                           );
                         },
                       ),

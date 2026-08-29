@@ -6,6 +6,7 @@ import '../core/app_export.dart';
 import '../widgets/custom_error_widget.dart';
 import './routes/app_routes.dart';
 import './services/supabase_service.dart';
+import './services/theme_controller.dart';
 import './theme/app_theme.dart';
 import './widgets/custom_error_widget.dart';
 
@@ -18,6 +19,9 @@ void main() async {
   } catch (e) {
     debugPrint('Failed to initialize Supabase: $e');
   }
+
+  // Load the saved light/dark preference before first paint.
+  await ThemeController.instance.load();
 
   bool hasShownError = false;
 
@@ -54,23 +58,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, screenType) {
-        return MaterialApp.router(
-          title: 'FitTrack',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.dark,
-          // 🚨 CRITICAL: NEVER REMOVE OR MODIFY
-          builder: (context, child) {
-            return MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(1.0)),
-              child: child!,
+        return ListenableBuilder(
+          listenable: ThemeController.instance,
+          builder: (context, _) {
+            return MaterialApp.router(
+              title: 'FitTrack',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeController.instance.themeMode,
+              // 🚨 CRITICAL: NEVER REMOVE OR MODIFY
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(1.0)),
+                  child: child!,
+                );
+              },
+              // 🚨 END CRITICAL SECTION
+              debugShowCheckedModeBanner: false,
+              routerConfig: appRouter,
             );
           },
-          // 🚨 END CRITICAL SECTION
-          debugShowCheckedModeBanner: false,
-          routerConfig: appRouter,
         );
       },
     );

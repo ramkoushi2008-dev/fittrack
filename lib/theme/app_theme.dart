@@ -1,5 +1,6 @@
-// THEME LOCK: dark — source: domain signal (fitness/energy app)
-// Scaffold.backgroundColor = AppTheme.backgroundDark — ALL screens
+// Dark is still the default and most screens are dark-only by design, but
+// Home, Activity, Settings, and Account support a light mode toggle (see
+// ThemeController + the AppColorsX extension below).
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,12 +24,23 @@ class AppTheme {
   static const Color cardDark = Color(0xFF1E2020);
   static const Color cardElevatedDark = Color(0xFF252828);
 
-  // Text
+  // Dark text
   static const Color textPrimary = Color(0xFFEEEEEE);
   static const Color textSecondary = Color(0xFFAAAAAA);
   static const Color textMuted = Color(0xFF666666);
 
-  // Metric colors
+  // Light surfaces — used by screens that support the light-mode toggle
+  static const Color backgroundLight = Color(0xFFFAFAFA);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color surfaceVariantLight = Color(0xFFF0F0F0);
+  static const Color cardLight = Color(0xFFFFFFFF);
+
+  // Light text
+  static const Color textPrimaryLight = Color(0xFF1A1A1A);
+  static const Color textSecondaryLight = Color(0xFF5A5A5A);
+  static const Color textMutedLight = Color(0xFF9A9A9A);
+
+  // Metric colors (kept the same across themes)
   static const Color stepsColor = Color(0xFF64B5F6);
   static const Color waterColor = Color(0xFF4FC3F7);
   static const Color proteinColor = Color(0xFFFFB74D);
@@ -148,4 +160,26 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
     ),
   );
+}
+
+/// Theme-aware neutral colors for the screens that support the light/dark
+/// toggle (Home, Activity, Settings, Account). Brand/semantic/metric colors
+/// stay constant across themes — only backgrounds, surfaces, and text
+/// swap. Other screens are still dark-only and use AppTheme.*Dark directly.
+extension AppColorsX on BuildContext {
+  bool get _isDark => Theme.of(this).brightness == Brightness.dark;
+
+  Color get appBackground =>
+      _isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight;
+  Color get appSurface =>
+      _isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight;
+  Color get appSurfaceVariant =>
+      _isDark ? AppTheme.surfaceVariantDark : AppTheme.surfaceVariantLight;
+  Color get appCard => _isDark ? AppTheme.cardDark : AppTheme.cardLight;
+  Color get appTextPrimary =>
+      _isDark ? AppTheme.textPrimary : AppTheme.textPrimaryLight;
+  Color get appTextSecondary =>
+      _isDark ? AppTheme.textSecondary : AppTheme.textSecondaryLight;
+  Color get appTextMuted =>
+      _isDark ? AppTheme.textMuted : AppTheme.textMutedLight;
 }

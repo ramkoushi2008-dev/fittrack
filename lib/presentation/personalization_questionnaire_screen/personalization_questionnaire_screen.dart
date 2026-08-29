@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../routes/app_routes.dart';
+import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import './widgets/plan_creating_widget.dart';
 import './widgets/questionnaire_step_widget.dart';
@@ -228,6 +229,8 @@ class _PersonalizationQuestionnaireScreenState
       });
       await prefs.setString('questionnaire_answers', jsonEncode(serializable));
     } catch (_) {}
+
+    await SupabaseService.instance.markOnboardingComplete();
 
     await Future.delayed(const Duration(seconds: 3));
     if (mounted) {
