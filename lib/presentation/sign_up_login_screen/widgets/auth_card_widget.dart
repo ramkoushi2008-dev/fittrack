@@ -9,7 +9,10 @@ import '../../../theme/app_theme.dart';
 import '../../../widgets/custom_image_widget.dart';
 
 class AuthCardWidget extends StatefulWidget {
-  final VoidCallback onLoginSuccess;
+  /// [onboarded] tells the caller whether this user already finished the
+  /// personalization questionnaire, so it can route to Home instead of
+  /// sending a returning user back through onboarding.
+  final void Function({required bool onboarded}) onLoginSuccess;
   const AuthCardWidget({required this.onLoginSuccess, super.key});
 
   @override
@@ -46,12 +49,17 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
         // Execution stops here on web — the browser navigates away.
         return;
       } else {
-        // On mobile, OAuth opens a browser and returns a session.
+        // On mobile, OAuth opens a browser and returns a session via this
+        // custom scheme deep link (registered in AndroidManifest.xml /
+        // Info.plist, and must also be added to Supabase's Redirect URLs).
         await SupabaseService.instance.client.auth.signInWithOAuth(
           OAuthProvider.google,
+          redirectTo: 'com.example.fittrack://login-callback/',
         );
         await SupabaseService.instance.ensureUserProfile();
-        if (mounted) widget.onLoginSuccess();
+        final onboarded = await SupabaseService.instance
+            .hasCompletedOnboarding();
+        if (mounted) widget.onLoginSuccess(onboarded: onboarded);
       }
     } catch (e) {
       if (mounted) {
@@ -90,7 +98,8 @@ class _AuthCardWidgetState extends State<AuthCardWidget> {
         );
       }
       await SupabaseService.instance.ensureUserProfile();
-      if (mounted) widget.onLoginSuccess();
+      final onboarded = await SupabaseService.instance.hasCompletedOnboarding();
+      if (mounted) widget.onLoginSuccess(onboarded: onboarded);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

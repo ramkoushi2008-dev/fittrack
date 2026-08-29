@@ -77,7 +77,7 @@ class _ActivityCardGridWidgetState extends State<ActivityCardGridWidget> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary : AppTheme.surfaceDark,
+                    color: isSelected ? AppTheme.primary : context.appSurface,
                     borderRadius: BorderRadius.circular(50),
                   ),
                   child: Text(
@@ -87,7 +87,7 @@ class _ActivityCardGridWidgetState extends State<ActivityCardGridWidget> {
                       fontWeight: FontWeight.w600,
                       color: isSelected
                           ? const Color(0xFF1A1A1A)
-                          : AppTheme.textSecondary,
+                          : context.appTextSecondary,
                     ),
                   ),
                 ),

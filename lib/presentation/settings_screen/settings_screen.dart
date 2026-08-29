@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
 
+import '../../services/theme_controller.dart';
 import '../../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -92,9 +93,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SnackBar(
             content: Text(
               'Export failed. Please try again.',
-              style: GoogleFonts.manrope(color: AppTheme.textPrimary),
+              style: GoogleFonts.manrope(color: context.appTextPrimary),
             ),
-            backgroundColor: AppTheme.surfaceVariantDark,
+            backgroundColor: context.appSurfaceVariant,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -111,20 +112,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceDark,
+        backgroundColor: context.appSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Reset Questionnaire?',
           style: GoogleFonts.manrope(
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: context.appTextPrimary,
           ),
         ),
         content: Text(
           'This will clear all your personalisation answers and your workout plan will revert to defaults. This cannot be undone.',
           style: GoogleFonts.manrope(
             fontSize: 14,
-            color: AppTheme.textSecondary,
+            color: context.appTextSecondary,
           ),
         ),
         actions: [
@@ -132,7 +133,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () => Navigator.of(ctx).pop(false),
             child: Text(
               'Cancel',
-              style: GoogleFonts.manrope(color: AppTheme.textSecondary),
+              style: GoogleFonts.manrope(color: context.appTextSecondary),
             ),
           ),
           TextButton(
@@ -185,7 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
+      backgroundColor: context.appBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -199,7 +200,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: GoogleFonts.manrope(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                      color: context.appTextPrimary,
                     ),
                   ),
                 ],
@@ -210,6 +211,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
                 children: [
+                  // Appearance section
+                  _SectionLabel(label: 'Appearance'),
+                  const SizedBox(height: 12),
+                  _SettingsCard(
+                    children: [
+                      _ToggleRow(
+                        icon: Icons.dark_mode_rounded,
+                        iconColor: AppTheme.primary,
+                        title: 'Dark Mode',
+                        subtitle: 'Switch between light and dark theme',
+                        value: ThemeController.instance.isDark,
+                        onChanged: (v) {
+                          setState(() => ThemeController.instance.setDark(v));
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 28),
+
                   // Notifications section
                   _SectionLabel(label: 'Notifications'),
                   const SizedBox(height: 12),
@@ -274,9 +295,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   color: AppTheme.primary,
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.chevron_right_rounded,
-                                color: AppTheme.textMuted,
+                                color: context.appTextMuted,
                                 size: 20,
                               ),
                         onTap: _isExporting ? null : _exportData,
@@ -296,9 +317,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: AppTheme.warning,
                         title: 'Reset Questionnaire',
                         subtitle: 'Clear personalisation and start fresh',
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right_rounded,
-                          color: AppTheme.textMuted,
+                          color: context.appTextMuted,
                           size: 20,
                         ),
                         onTap: _resetQuestionnaire,
@@ -333,7 +354,7 @@ class _SectionLabel extends StatelessWidget {
       style: GoogleFonts.manrope(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: AppTheme.textMuted,
+        color: context.appTextMuted,
         letterSpacing: 1.2,
       ),
     );
@@ -348,7 +369,7 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: children),
@@ -362,7 +383,7 @@ class _Divider extends StatelessWidget {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: AppTheme.surfaceVariantDark,
+      color: context.appSurfaceVariant,
     );
   }
 }
@@ -409,7 +430,7 @@ class _ToggleRow extends StatelessWidget {
                   style: GoogleFonts.manrope(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
+                    color: context.appTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -417,7 +438,7 @@ class _ToggleRow extends StatelessWidget {
                   subtitle,
                   style: GoogleFonts.manrope(
                     fontSize: 12,
-                    color: AppTheme.textSecondary,
+                    color: context.appTextSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -431,8 +452,8 @@ class _ToggleRow extends StatelessWidget {
             onChanged: onChanged,
             activeThumbColor: AppTheme.primary,
             activeTrackColor: AppTheme.primaryContainer,
-            inactiveThumbColor: AppTheme.textMuted,
-            inactiveTrackColor: AppTheme.surfaceVariantDark,
+            inactiveThumbColor: context.appTextMuted,
+            inactiveTrackColor: context.appSurfaceVariant,
           ),
         ],
       ),
@@ -485,7 +506,7 @@ class _ActionRow extends StatelessWidget {
                     style: GoogleFonts.manrope(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                      color: context.appTextPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -493,7 +514,7 @@ class _ActionRow extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.manrope(
                       fontSize: 12,
-                      color: AppTheme.textSecondary,
+                      color: context.appTextSecondary,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -526,7 +547,7 @@ class _Footer extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'Version 1.0.0',
-          style: GoogleFonts.manrope(fontSize: 12, color: AppTheme.textMuted),
+          style: GoogleFonts.manrope(fontSize: 12, color: context.appTextMuted),
         ),
         const SizedBox(height: 12),
         Row(
@@ -538,9 +559,9 @@ class _Footer extends StatelessWidget {
                 'Terms of Service',
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: AppTheme.textSecondary,
+                  color: context.appTextSecondary,
                   decoration: TextDecoration.underline,
-                  decorationColor: AppTheme.textSecondary,
+                  decorationColor: context.appTextSecondary,
                 ),
               ),
             ),
@@ -550,7 +571,7 @@ class _Footer extends StatelessWidget {
                 '·',
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: AppTheme.textMuted,
+                  color: context.appTextMuted,
                 ),
               ),
             ),
@@ -560,9 +581,9 @@ class _Footer extends StatelessWidget {
                 'Privacy Policy',
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: AppTheme.textSecondary,
+                  color: context.appTextSecondary,
                   decoration: TextDecoration.underline,
-                  decorationColor: AppTheme.textSecondary,
+                  decorationColor: context.appTextSecondary,
                 ),
               ),
             ),
@@ -571,7 +592,7 @@ class _Footer extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           '© 2026 FitTrack. All rights reserved.',
-          style: GoogleFonts.manrope(fontSize: 11, color: AppTheme.textMuted),
+          style: GoogleFonts.manrope(fontSize: 11, color: context.appTextMuted),
         ),
       ],
     );

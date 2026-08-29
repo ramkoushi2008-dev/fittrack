@@ -187,14 +187,14 @@ class _AccountScreenState extends State<AccountScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppTheme.surfaceVariantDark,
+          backgroundColor: context.appSurfaceVariant,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
           title: Text(
             'Add Device',
             style: GoogleFonts.manrope(
-              color: AppTheme.textPrimary,
+              color: context.appTextPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -203,7 +203,7 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               TextField(
                 controller: nameCtrl,
-                style: GoogleFonts.manrope(color: AppTheme.textPrimary),
+                style: GoogleFonts.manrope(color: context.appTextPrimary),
                 decoration: InputDecoration(
                   labelText: 'Device Name',
                   hintText: 'e.g. Apple Watch Series 9',
@@ -212,8 +212,8 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: selectedType,
-                dropdownColor: AppTheme.surfaceVariantDark,
-                style: GoogleFonts.manrope(color: AppTheme.textPrimary),
+                dropdownColor: context.appSurfaceVariant,
+                style: GoogleFonts.manrope(color: context.appTextPrimary),
                 decoration: const InputDecoration(labelText: 'Device Type'),
                 items: ['wearable', 'phone', 'tablet', 'scale', 'other']
                     .map((t) => DropdownMenuItem(value: t, child: Text(t)))
@@ -228,7 +228,7 @@ class _AccountScreenState extends State<AccountScreen> {
               onPressed: () => Navigator.pop(ctx),
               child: Text(
                 'Cancel',
-                style: GoogleFonts.manrope(color: AppTheme.textSecondary),
+                style: GoogleFonts.manrope(color: context.appTextSecondary),
               ),
             ),
             ElevatedButton(
@@ -257,27 +257,27 @@ class _AccountScreenState extends State<AccountScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceVariantDark,
+        backgroundColor: context.appSurfaceVariant,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
         ),
         title: Text(
           'Remove Device',
           style: GoogleFonts.manrope(
-            color: AppTheme.textPrimary,
+            color: context.appTextPrimary,
             fontWeight: FontWeight.w700,
           ),
         ),
         content: Text(
           'Remove "$deviceName" from your linked devices?',
-          style: GoogleFonts.manrope(color: AppTheme.textSecondary),
+          style: GoogleFonts.manrope(color: context.appTextSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
               'Cancel',
-              style: GoogleFonts.manrope(color: AppTheme.textSecondary),
+              style: GoogleFonts.manrope(color: context.appTextSecondary),
             ),
           ),
           ElevatedButton(
@@ -319,7 +319,7 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
+      backgroundColor: context.appBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -361,7 +361,7 @@ class _AccountScreenState extends State<AccountScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceVariantDark,
+              color: context.appSurfaceVariant,
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: const Icon(
@@ -376,7 +376,7 @@ class _AccountScreenState extends State<AccountScreen> {
             style: GoogleFonts.manrope(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: AppTheme.textPrimary,
+              color: context.appTextPrimary,
             ),
           ),
         ],
@@ -394,7 +394,7 @@ class _AccountScreenState extends State<AccountScreen> {
           style: GoogleFonts.manrope(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: context.appTextPrimary,
           ),
         ),
       ],
@@ -409,7 +409,7 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(20.0),
           ),
           padding: const EdgeInsets.all(20),
@@ -460,7 +460,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                 style: GoogleFonts.manrope(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary,
+                                  color: context.appTextPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -469,7 +469,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                 _emailCtrl.text,
                                 style: GoogleFonts.manrope(
                                   fontSize: 13,
-                                  color: AppTheme.textSecondary,
+                                  color: context.appTextSecondary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -604,7 +604,7 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(20.0),
           ),
           child: _isLoadingDevices
@@ -624,14 +624,14 @@ class _AccountScreenState extends State<AccountScreen> {
                     children: [
                       Icon(
                         Icons.devices_other_rounded,
-                        color: AppTheme.textMuted,
+                        color: context.appTextMuted,
                         size: 36,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'No devices linked yet',
                         style: GoogleFonts.manrope(
-                          color: AppTheme.textSecondary,
+                          color: context.appTextSecondary,
                           fontSize: 14,
                         ),
                       ),
@@ -643,7 +643,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _devices.length,
                   separatorBuilder: (_, __) => Divider(
-                    color: AppTheme.surfaceVariantDark,
+                    color: context.appSurfaceVariant,
                     height: 1,
                     indent: 20,
                     endIndent: 20,
@@ -664,7 +664,7 @@ class _AccountScreenState extends State<AccountScreen> {
                             decoration: BoxDecoration(
                               color: isConnected
                                   ? AppTheme.primaryContainer
-                                  : AppTheme.surfaceVariantDark,
+                                  : context.appSurfaceVariant,
                               borderRadius: BorderRadius.circular(12.0),
                             ),
                             child: Icon(
@@ -673,7 +673,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               ),
                               color: isConnected
                                   ? AppTheme.primary
-                                  : AppTheme.textMuted,
+                                  : context.appTextMuted,
                               size: 20,
                             ),
                           ),
@@ -687,7 +687,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                   style: GoogleFonts.manrope(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
+                                    color: context.appTextPrimary,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -698,7 +698,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                     fontSize: 12,
                                     color: isConnected
                                         ? AppTheme.primary
-                                        : AppTheme.textMuted,
+                                        : context.appTextMuted,
                                   ),
                                 ),
                               ],
@@ -747,7 +747,7 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(20.0),
           ),
           child: _isLoadingApps
@@ -765,7 +765,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _healthAppDefs.length,
                   separatorBuilder: (_, __) => Divider(
-                    color: AppTheme.surfaceVariantDark,
+                    color: context.appSurfaceVariant,
                     height: 1,
                     indent: 20,
                     endIndent: 20,
@@ -787,14 +787,14 @@ class _AccountScreenState extends State<AccountScreen> {
                             decoration: BoxDecoration(
                               color: isConnected
                                   ? AppTheme.primaryContainer
-                                  : AppTheme.surfaceVariantDark,
+                                  : context.appSurfaceVariant,
                               borderRadius: BorderRadius.circular(12.0),
                             ),
                             child: Icon(
                               appDef['icon'] as IconData,
                               color: isConnected
                                   ? AppTheme.primary
-                                  : AppTheme.textMuted,
+                                  : context.appTextMuted,
                               size: 20,
                             ),
                           ),
@@ -808,7 +808,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                   style: GoogleFonts.manrope(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
+                                    color: context.appTextPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -818,7 +818,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                     fontSize: 12,
                                     color: isConnected
                                         ? AppTheme.primary
-                                        : AppTheme.textMuted,
+                                        : context.appTextMuted,
                                   ),
                                 ),
                               ],
@@ -855,7 +855,7 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(20.0),
           ),
           padding: const EdgeInsets.all(20),
@@ -912,7 +912,7 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(20.0),
           ),
           child: ListTile(
@@ -938,19 +938,19 @@ class _AccountScreenState extends State<AccountScreen> {
               style: GoogleFonts.manrope(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
+                color: context.appTextPrimary,
               ),
             ),
             subtitle: Text(
               'How we collect and use your data',
               style: GoogleFonts.manrope(
                 fontSize: 12,
-                color: AppTheme.textSecondary,
+                color: context.appTextSecondary,
               ),
             ),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.chevron_right_rounded,
-              color: AppTheme.textMuted,
+              color: context.appTextMuted,
             ),
             onTap: () {
               Navigator.of(context).push(
@@ -988,7 +988,7 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(20.0),
             border: Border.all(color: AppTheme.error.withAlpha(60), width: 1),
           ),
@@ -1021,7 +1021,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           style: GoogleFonts.manrope(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
+                            color: context.appTextPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1029,7 +1029,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           'Permanently remove your account and all data',
                           style: GoogleFonts.manrope(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                         ),
                       ],
@@ -1042,7 +1042,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 'This action is irreversible. All your workouts, nutrition logs, sleep data, and account information will be permanently deleted from our servers.',
                 style: GoogleFonts.manrope(
                   fontSize: 12,
-                  color: AppTheme.textMuted,
+                  color: context.appTextMuted,
                   height: 1.6,
                 ),
               ),
@@ -1077,14 +1077,14 @@ class _AccountScreenState extends State<AccountScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceVariantDark,
+        backgroundColor: context.appSurfaceVariant,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
         ),
         title: Text(
           'Delete Account?',
           style: GoogleFonts.manrope(
-            color: AppTheme.textPrimary,
+            color: context.appTextPrimary,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -1095,7 +1095,7 @@ class _AccountScreenState extends State<AccountScreen> {
             Text(
               'This will permanently delete:',
               style: GoogleFonts.manrope(
-                color: AppTheme.textSecondary,
+                color: context.appTextSecondary,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -1121,7 +1121,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     Text(
                       item,
                       style: GoogleFonts.manrope(
-                        color: AppTheme.textSecondary,
+                        color: context.appTextSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -1145,7 +1145,7 @@ class _AccountScreenState extends State<AccountScreen> {
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
               'Cancel',
-              style: GoogleFonts.manrope(color: AppTheme.textSecondary),
+              style: GoogleFonts.manrope(color: context.appTextSecondary),
             ),
           ),
           ElevatedButton(
@@ -1165,15 +1165,22 @@ class _AccountScreenState extends State<AccountScreen> {
 
     if (confirmed == true && mounted) {
       _showDeletingDialog();
-      final error = await _supabase.deleteAccount();
+      final result = await _supabase.deleteAccount();
       if (mounted) Navigator.of(context).pop(); // close deleting dialog
-      if (error == null) {
-        if (mounted) {
-          context.go('/');
+      if (result.signedOut) {
+        // Data (and the session) are gone either way — always leave the
+        // screen. If the credential itself couldn't be removed, say so
+        // separately rather than implying deletion failed outright.
+        if (mounted) context.go('/');
+        if (result.warning != null && mounted) {
+          _showSnack(result.warning!, false);
         }
       } else {
         if (mounted) {
-          _showSnack('Failed to delete account. Please try again.', false);
+          _showSnack(
+            result.warning ?? 'Failed to delete account. Please try again.',
+            false,
+          );
         }
       }
     }
@@ -1184,7 +1191,7 @@ class _AccountScreenState extends State<AccountScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceVariantDark,
+        backgroundColor: context.appSurfaceVariant,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
         ),
@@ -1197,7 +1204,7 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(width: 20),
             Text(
               'Deleting account...',
-              style: GoogleFonts.manrope(color: AppTheme.textPrimary),
+              style: GoogleFonts.manrope(color: context.appTextPrimary),
             ),
           ],
         ),
@@ -1217,14 +1224,14 @@ class _AccountScreenState extends State<AccountScreen> {
       readOnly: readOnly,
       keyboardType: keyboardType,
       style: GoogleFonts.manrope(
-        color: readOnly ? AppTheme.textSecondary : AppTheme.textPrimary,
+        color: readOnly ? context.appTextSecondary : context.appTextPrimary,
         fontSize: 14,
       ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 18),
+        prefixIcon: Icon(icon, color: context.appTextMuted, size: 18),
         filled: true,
-        fillColor: AppTheme.surfaceVariantDark,
+        fillColor: context.appSurfaceVariant,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -1242,13 +1249,13 @@ class _AccountScreenState extends State<AccountScreen> {
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value,
-      dropdownColor: AppTheme.surfaceVariantDark,
-      style: GoogleFonts.manrope(color: AppTheme.textPrimary, fontSize: 14),
+      dropdownColor: context.appSurfaceVariant,
+      style: GoogleFonts.manrope(color: context.appTextPrimary, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 18),
+        prefixIcon: Icon(icon, color: context.appTextMuted, size: 18),
         filled: true,
-        fillColor: AppTheme.surfaceVariantDark,
+        fillColor: context.appSurfaceVariant,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -1260,7 +1267,7 @@ class _AccountScreenState extends State<AccountScreen> {
               value: item,
               child: Text(
                 item,
-                style: GoogleFonts.manrope(color: AppTheme.textPrimary),
+                style: GoogleFonts.manrope(color: context.appTextPrimary),
               ),
             ),
           )
@@ -1278,24 +1285,24 @@ class _AccountScreenState extends State<AccountScreen> {
     return TextField(
       controller: controller,
       obscureText: obscure,
-      style: GoogleFonts.manrope(color: AppTheme.textPrimary, fontSize: 14),
+      style: GoogleFonts.manrope(color: context.appTextPrimary, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.lock_outline_rounded,
-          color: AppTheme.textMuted,
+          color: context.appTextMuted,
           size: 18,
         ),
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            color: AppTheme.textMuted,
+            color: context.appTextMuted,
             size: 18,
           ),
           onPressed: onToggle,
         ),
         filled: true,
-        fillColor: AppTheme.surfaceVariantDark,
+        fillColor: context.appSurfaceVariant,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,

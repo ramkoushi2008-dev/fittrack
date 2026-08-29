@@ -40,7 +40,7 @@ class WeekDaySelectorWidget extends StatelessWidget {
               curve: Curves.easeOutCubic,
               width: 52,
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primary : AppTheme.surfaceDark,
+                color: isSelected ? AppTheme.primary : context.appSurface,
                 borderRadius: BorderRadius.circular(50),
               ),
               child: Column(
@@ -53,7 +53,7 @@ class WeekDaySelectorWidget extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: isSelected
                           ? const Color(0xFF1A1A1A)
-                          : AppTheme.textSecondary,
+                          : context.appTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -64,7 +64,7 @@ class WeekDaySelectorWidget extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                       color: isSelected
                           ? const Color(0xFF1A1A1A)
-                          : AppTheme.textPrimary,
+                          : context.appTextPrimary,
                       fontFeatures: [const FontFeature.tabularFigures()],
                     ),
                   ),

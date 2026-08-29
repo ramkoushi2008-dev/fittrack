@@ -26,6 +26,9 @@ dependencies:
   fl_chart: ^0.65.0
   go_router: ^14.6.1
   universal_html: ^2.2.4
+  health: ^13.3.0            # Apple HealthKit (iOS) + Health Connect (Android) integration
+  permission_handler: ^11.3.1 # Required by health for Android activity-recognition permission
+  usage_stats: ^1.3.0        # Android screen on/off history, used to suggest sleep sessions
 
 
 dev_dependencies:

@@ -23,7 +23,7 @@ class MetricTabSelectorWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(50),
       ),
       child: Row(
@@ -48,7 +48,7 @@ class MetricTabSelectorWidget extends StatelessWidget {
                       size: 14,
                       color: isSelected
                           ? const Color(0xFF1A1A1A)
-                          : AppTheme.textSecondary,
+                          : context.appTextSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -58,7 +58,7 @@ class MetricTabSelectorWidget extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: isSelected
                             ? const Color(0xFF1A1A1A)
-                            : AppTheme.textSecondary,
+                            : context.appTextSecondary,
                       ),
                     ),
                   ],

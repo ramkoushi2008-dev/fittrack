@@ -5,9 +5,22 @@ import '../../../theme/app_theme.dart';
 
 class ActivityBarChartWidget extends StatelessWidget {
   final int selectedMetric;
-  const ActivityBarChartWidget({required this.selectedMetric, super.key});
 
-  static const List<List<double>> _chartData = [
+  /// Live daily series for each tab, oldest first. Null falls back to demo
+  /// data for that tab.
+  final List<double>? dailySteps;
+  final List<double>? dailyCalories;
+  final List<double>? dailyActiveMinutes;
+
+  const ActivityBarChartWidget({
+    required this.selectedMetric,
+    this.dailySteps,
+    this.dailyCalories,
+    this.dailyActiveMinutes,
+    super.key,
+  });
+
+  static const List<List<double>> _demoChartData = [
     // Steps (thousands)
     [6.2, 8.4, 7.2, 9.1, 5.8, 10.2, 7.4, 8.8, 7.2],
     // Calories (hundreds)
@@ -16,33 +29,44 @@ class ActivityBarChartWidget extends StatelessWidget {
     [35, 52, 48, 61, 30, 72, 44, 58, 48],
   ];
 
-  static const List<String> _dateLabels = [
-    '09',
-    '10',
-    '11',
-    '12',
-    '13',
-    '14',
-    '15',
-    '16',
-    '17',
-  ];
+  List<String> _dateLabels(int count) {
+    final now = DateTime.now();
+    return List.generate(count, (i) {
+      final day = now.subtract(Duration(days: count - 1 - i));
+      return day.day.toString().padLeft(2, '0');
+    });
+  }
 
-  static const List<String> _dayLabels = [
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-    'Sun',
-    'Mon',
-    'Tue',
-  ];
+  List<String> _dayLabels(int count) {
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final now = DateTime.now();
+    return List.generate(count, (i) {
+      final day = now.subtract(Duration(days: count - 1 - i));
+      return names[day.weekday - 1];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final data = _chartData[selectedMetric];
+    // Steps display in thousands, calories in hundreds, to keep bars a
+    // readable height; active minutes are shown as-is.
+    List<double> data;
+    switch (selectedMetric) {
+      case 0:
+        data = dailySteps != null
+            ? dailySteps!.map((v) => v / 1000).toList()
+            : _demoChartData[0];
+        break;
+      case 1:
+        data = dailyCalories != null
+            ? dailyCalories!.map((v) => v / 100).toList()
+            : _demoChartData[1];
+        break;
+      default:
+        data = dailyActiveMinutes ?? _demoChartData[2];
+    }
+    final dateLabels = _dateLabels(data.length);
+    final dayLabels = _dayLabels(data.length);
     final color = selectedMetric == 0
         ? AppTheme.stepsColor
         : selectedMetric == 1
@@ -52,7 +76,7 @@ class ActivityBarChartWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -63,10 +87,17 @@ class ActivityBarChartWidget extends StatelessWidget {
             children: [
               Text(
                 selectedMetric == 0
-                    ? '7,240 steps today'
+                    ? (dailySteps != null && dailySteps!.isNotEmpty
+                          ? '${dailySteps!.last.round()} steps today'
+                          : '7,240 steps today')
                     : selectedMetric == 1
-                    ? '1,390 Kcal today'
-                    : '48 min today',
+                    ? (dailyCalories != null && dailyCalories!.isNotEmpty
+                          ? '${dailyCalories!.last.round()} Kcal today'
+                          : '1,390 Kcal today')
+                    : (dailyActiveMinutes != null &&
+                              dailyActiveMinutes!.isNotEmpty
+                          ? '${dailyActiveMinutes!.last.round()} min today'
+                          : '48 min today'),
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -80,7 +111,7 @@ class ActivityBarChartWidget extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceVariantDark,
+                  color: context.appSurfaceVariant,
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Row(
@@ -89,15 +120,15 @@ class ActivityBarChartWidget extends StatelessWidget {
                       'Days',
                       style: GoogleFonts.manrope(
                         fontSize: 12,
-                        color: AppTheme.textSecondary,
+                        color: context.appTextSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 14,
-                      color: AppTheme.textSecondary,
+                      color: context.appTextSecondary,
                     ),
                   ],
                 ),
@@ -110,7 +141,11 @@ class ActivityBarChartWidget extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: data.reduce((a, b) => a > b ? a : b) * 1.3,
+                maxY:
+                    (data.isEmpty
+                        ? 1.0
+                        : data.reduce((a, b) => a > b ? a : b)) *
+                    1.3,
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
                     tooltipRoundedRadius: 8,
@@ -142,25 +177,25 @@ class ActivityBarChartWidget extends StatelessWidget {
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         final i = value.toInt();
-                        if (i >= _dateLabels.length) return const SizedBox();
+                        if (i >= dateLabels.length) return const SizedBox();
                         return Column(
                           children: [
                             const SizedBox(height: 6),
                             Text(
-                              _dateLabels[i],
+                              dateLabels[i],
                               style: GoogleFonts.manrope(
                                 fontSize: 10,
-                                color: AppTheme.textMuted,
+                                color: context.appTextMuted,
                                 fontFeatures: [
                                   const FontFeature.tabularFigures(),
                                 ],
                               ),
                             ),
                             Text(
-                              _dayLabels[i],
+                              dayLabels[i],
                               style: GoogleFonts.manrope(
                                 fontSize: 9,
-                                color: AppTheme.textMuted,
+                                color: context.appTextMuted,
                               ),
                             ),
                           ],
@@ -173,14 +208,14 @@ class ActivityBarChartWidget extends StatelessWidget {
                 gridData: FlGridData(
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (_) => FlLine(
-                    color: AppTheme.surfaceVariantDark,
+                    color: context.appSurfaceVariant,
                     strokeWidth: 1,
                     dashArray: [4, 4],
                   ),
                 ),
                 borderData: FlBorderData(show: false),
                 barGroups: data.asMap().entries.map((entry) {
-                  final isToday = entry.key == 2;
+                  final isToday = entry.key == data.length - 1;
                   return BarChartGroupData(
                     x: entry.key,
                     barRods: [
